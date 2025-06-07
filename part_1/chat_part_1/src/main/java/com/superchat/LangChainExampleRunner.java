@@ -5,6 +5,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,8 @@ import java.util.Scanner;
 @Profile("langchain-example-1") // Run only if this profile is active
 public class LangChainExampleRunner implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(LangChainExampleRunner.class);
+    @Value("${com.superchat.openai.api-key}")
+    private String openAiApiKey;
 
     @Override
     public void run(String... args) throws Exception {
@@ -38,8 +41,8 @@ public class LangChainExampleRunner implements CommandLineRunner {
 
     private IChatAgentA createAgenteChatRecomendador() {
         OpenAiChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey("REMOVIDOproj-bpexlGIkVLCzAELchzGzVwumet6PeoyuTZIlJbdk_TMz5VIIL1KjMa_pYvYfCclhbX_ppDMQxoT3BlbkFJM-BIZFzplxL5q_GP2iANMhPSI7uYKEDAKUGW3yLYD4A4f6NpShAI6js83vdmEGvWaKfbaQzmYA") // o usa un string literal con tu clave
-                .modelName("gpt-4o") // o "gpt-4-1106-preview", "gpt-3.5-turbo"
+                .apiKey(openAiApiKey) // or use a literal string with your API Key
+                .modelName("gpt-4o") // or "gpt-4-1106-preview", "gpt-3.5-turbo"
                 .temperature(0.2)
                 .timeout(Duration.ofSeconds(60))
                 .logRequests(false)

@@ -40,7 +40,7 @@ public class LangChainExampleRunner implements CommandLineRunner {
     @Value("${langchain4j.openai.chat-model.api-key}") //Injects a variable with the value of the property "langchain4j.openai.chat-model.api-key" from application.properties
     private String openAiApiKey;
 
-    private Boolean firstRun = true; // Flag to control data ingestion
+    private Boolean firstRun = false; // Flag to control data ingestion
 
     public EmbeddingStore<TextSegment> buildPersistentEmbeddingStore() {
         return PgVectorEmbeddingStore.builder()
@@ -135,14 +135,15 @@ public class LangChainExampleRunner implements CommandLineRunner {
             jsonDataForProfileExtractionAgent = jsonDataForProfileExtractionAgent.replaceAll("```json", "").replaceAll("```", "");
             clientProfile.applyJson(jsonDataForProfileExtractionAgent);
             log.info("Extracted client profile: {}", clientProfile);
+            log.info("Friendly description: {}", clientProfile.friendlyProfileDescription());
 
             // 3) Cuando llega un mensaje del usuario, extraes perfil (como ya lo haces) y luego:
             candidateIds = AudienceSearcher.findCandidateProductIds(
                     clientProfile,
                     embeddingModel,
                     embeddingStore,
-                    4,       // maxResults candidatos
-                    0.75     // minScore más exigente
+                    5, // maxResults
+                    0.78 // minScore
             );
 
             // 4) Construyes el contexto sólo con productos candidatos:

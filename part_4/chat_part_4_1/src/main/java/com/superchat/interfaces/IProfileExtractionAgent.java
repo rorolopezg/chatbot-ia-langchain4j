@@ -17,6 +17,14 @@ public interface IProfileExtractionAgent {
         Don't explain anything; just respond with clean JSON.
         Don't add additional text, just the JSON.
         Always respond in English.
+        Example output:
+        {
+          "name": "John Doe",
+          "maritalStatus": "married",
+          "age": 35,
+          "hasChildren": true,
+          "expressionOfInterestInInsurance": "life insurance and health insurance"
+        }
     """)
     String extractData(@UserMessage String mensajeCliente);
 }

@@ -25,33 +25,30 @@ public final class AudienceSearcher {
                                                        int maxResults,
                                                        double minScore) {
 
-        // 1) Construir query para audiencia
-        String audienceQuery = profile.friendlyProfileDescription(); //AudienceQueryBuilder.build(profile);
-        Embedding qEmb = embeddingModel.embed(audienceQuery).content();
+        // 1) Build query for target audience
+        String audienceQuery = profile.friendlyProfileDescription();
+        Embedding queryForEmbeddings = embeddingModel.embed(audienceQuery).content();
 
-        // 2) Buscar (trae más y luego filtramos)
+        // 2) Search semantically in the store
         EmbeddingSearchRequest req = EmbeddingSearchRequest.builder()
-                .queryEmbedding(qEmb)
-                .maxResults(Math.max(maxResults * 4, 20)) // trae más para post-filter
+                .queryEmbedding(queryForEmbeddings)
+                .maxResults(maxResults)
                 .minScore(minScore)
                 .build();
 
         EmbeddingSearchResult<TextSegment> res = store.search(req);
-
         log.info("Found {} initial matches for audience query (semantic search).", res.matches().size());
 
-        int age = profile.getAge() == null ? 0 : profile.getAge();
+        Integer age = profile.getAge() == null ? 0 : profile.getAge();
 
-        // 3) Post-filter: sólo segmentos "audience" y por rango etario
+        // 3) Post-filter: only "audience" segments and by age range:
         List<EmbeddingMatch<TextSegment>> audienceMatches = res.matches().stream()
-                .filter(m -> SEG_AUDIENCE.equals(String.valueOf(
-                        m.embedded().metadata().getString(META_SEGMENT_TYPE))))
+                .filter(m ->
+                        SEG_AUDIENCE.equals(String.valueOf(m.embedded().metadata().getString(META_SEGMENT_TYPE))))
                 .filter(m -> {
                     Integer min = m.embedded().metadata().getInteger(META_AGE_MIN);
                     Integer max = m.embedded().metadata().getInteger(META_AGE_MAX);
-                    int ageMin = (min == null) ? 0 : min;
-                    int ageMax = (max == null) ? 120 : max;
-                    return age == 0 || (age >= ageMin && age <= ageMax);
+                    return (age >= min && age <= max);
                 })
                 .toList();
         log.info("After post-filtering, {} matches remain for audience query.", audienceMatches.size());
@@ -60,7 +57,7 @@ public final class AudienceSearcher {
             return Collections.emptyList();
         }
 
-        // 4) Consolidar por productId → quedarnos con el mejor score por producto
+        // 4) Consolidate by productId → keep the best score per product:
         Map<String, EmbeddingMatch<TextSegment>> bestPerProduct =
                 audienceMatches.stream().collect(Collectors.toMap(
                         m -> String.valueOf(m.embedded().metadata().getString(META_PRODUCT_ID)),
@@ -68,10 +65,10 @@ public final class AudienceSearcher {
                         (m1, m2) -> m1.score() >= m2.score() ? m1 : m2
                 ));
 
-        // 5) Ordenar por score desc y cortar a maxResults
+        // 5) Sort by score desc and cut to maxResults:
         return bestPerProduct.values().stream()
                 .sorted(Comparator.comparingDouble(EmbeddingMatch<TextSegment>::score).reversed())
-                .limit(maxResults)
+                .limit(3) // Get top N products
                 .map(m -> String.valueOf(m.embedded().metadata().getString(META_PRODUCT_ID)))
                 .toList();
     }

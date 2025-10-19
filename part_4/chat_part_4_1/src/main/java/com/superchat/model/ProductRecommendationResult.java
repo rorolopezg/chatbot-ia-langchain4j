@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 public class ProductRecommendationResult {
     private IChatAgentA chatAgentA;
+    private IProfileExtractionAgent profileExtractionAgent;
     private EmbeddingModel embeddingModel;
     private EmbeddingStore<TextSegment> embeddingStore;
-    private IProfileExtractionAgent profileExtractionAgent;
 }

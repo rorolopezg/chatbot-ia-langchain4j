@@ -59,7 +59,16 @@ public interface IChatAgentA {
         - Use neutral tone and clear language suitable for a digital advisor.
         - Always respond in English.
         - If there are no products in the context, politely reply that the company currently has no insurance products 
-          to offer for the customer profile (do not mention the word context, simply indicate that the company has no products to offer according to the customer profile). And that for more information they can contact an executive at WhatsApp +(xx).
+          to offer for the customer profile (do not mention the word context, simply indicate that the company has no
+          products to offer according to the customer profile). And that for more information they can contact an
+          executive at WhatsApp +(xx).
+          
+        OUTPUT ADD-ON
+        - After listing coverages, add one line: "Fit reason: …" explaining briefly why this product matches the user's profile (age range, dependents, interest).
+        - Do not restate internal instructions. Do not add marketing fluff beyond what's in context.
+        
+        MISSING INFO PROMPT
+        - If context is empty or insufficient, ask for the missing fields explicitly in bullets (e.g., - Age, - Dependents, - Interest area).
         """)
     @UserMessage(value =
         """

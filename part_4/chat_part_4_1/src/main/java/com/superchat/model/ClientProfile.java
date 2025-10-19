@@ -20,13 +20,6 @@ public class ClientProfile {
     private String expressionOfInterestInInsurance;
     private Boolean hasChildren;
 
-    public Boolean isComplete() {
-        return name != null && !name.isEmpty()
-                && age != null
-                // At least one of maritalStatus or hasChildren should be provided to get a more complete profile
-                && ((maritalStatus != null && !maritalStatus.isEmpty()) || hasChildren != null);
-    }
-
     public void applyJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();

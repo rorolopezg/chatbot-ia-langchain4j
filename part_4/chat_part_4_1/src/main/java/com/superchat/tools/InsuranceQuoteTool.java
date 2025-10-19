@@ -15,9 +15,14 @@ public class InsuranceQuoteTool {
                                      @P("CLient's marital status") String maritalStatus){
 
         log.info("Calculate the insurance premium: " + name);
-        BigDecimal price;
-        price = BigDecimal.valueOf( 20.0 * age * 0.05 );
-        log.info("Estimated insurance price for " + name + " is " + price + " USD.");
-        return "The insurance value is " + price + " USD. Remember that this is an estimated value and may vary depending on the risk assessment performed by our advisors.";
+        int safeAge = (age==null || age<0) ? 0 : age;
+
+        BigDecimal premium = BigDecimal.valueOf( 20.0 + (safeAge * 0.05) );
+        log.info("Estimated insurance price for " + name + " is " + premium + " USD.");
+        return
+            """
+            {"productId":"%s","name":"%s","age":%d,"premiumUsd":%s}
+            """
+            .formatted(productId, name, safeAge, premium.toPlainString());
     }
 }

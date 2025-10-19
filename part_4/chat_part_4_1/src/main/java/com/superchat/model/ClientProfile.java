@@ -6,17 +6,26 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Slf4j
 public class ClientProfile {
     private String name;
     private Integer age;
     private String maritalStatus;
     private String expressionOfInterestInInsurance;
     private Boolean hasChildren;
+
+    public Boolean isComplete() {
+        return name != null && !name.isEmpty()
+                && age != null
+                // At least one of maritalStatus or hasChildren should be provided to get a more complete profile
+                && ((maritalStatus != null && !maritalStatus.isEmpty()) || hasChildren != null);
+    }
 
     public void applyJson(String json) {
         try {
@@ -44,7 +53,7 @@ public class ClientProfile {
                 this.setExpressionOfInterestInInsurance(expressionOfInterestInInsurance);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error building ClientProfile from JSON", e);
+            log.error("Error building ClientProfile from JSON", e);
         }
     }
 
@@ -97,7 +106,6 @@ public class ClientProfile {
     }
 
     public String friendlyProfileDescription() {
-        String ageStr = (this.getAge() != null) ? String.valueOf(this.getAge()) : "Unknown age";
         String ageBand = this.buildAgeBand();
         String marital = (this.getMaritalStatus() == null || this.getMaritalStatus().isBlank())
                 ? "Unknown marital status"
@@ -111,7 +119,31 @@ public class ClientProfile {
                 : "interested in " + expressionOfInterestInInsurance;
 
         return """
+               Find target audience that matches: age %s (%s), %s, %s, %s.
+               Return insurance products whose TARGET AUDIENCE best fits this profile.
+               """.formatted(
+                (age == null || age == 0 ? "unknown" : String.valueOf(age)),
+                ageBand,
+                marital,
+                children,
+                insuredInterest
+        );
+        /*
+        return """
            I'm %s years old (%s), I'm %s, %s. Interest: %s.
            """.formatted(ageStr, ageBand, marital, children, insuredInterest);
+
+         */
+    }
+
+    @Override
+    public String toString() {
+        return "ClientProfile{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", maritalStatus='" + maritalStatus + '\'' +
+                ", expressionOfInterestInInsurance='" + expressionOfInterestInInsurance + '\'' +
+                ", hasChildren=" + hasChildren +
+                '}';
     }
 }

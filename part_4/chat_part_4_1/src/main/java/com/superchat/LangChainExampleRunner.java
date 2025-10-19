@@ -1,13 +1,14 @@
 package com.superchat;
 
 import com.superchat.ingestion.ProductIngestion;
-import com.superchat.ingestion.ProductSamples;
+import com.superchat.repositories.ProductRepository;
 import com.superchat.interfaces.IChatAgentA;
 import com.superchat.interfaces.IProfileExtractionAgent;
 import com.superchat.model.ClientProfile;
 import com.superchat.model.Product;
 import com.superchat.model.ProductRecommendationResult;
 import com.superchat.semanticsearches.AudienceSearcher;
+import com.superchat.tools.InsuranceQuoteTool;
 import com.superchat.utils.AgentContextBuilder;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -39,7 +40,7 @@ public class LangChainExampleRunner implements CommandLineRunner {
     @Value("${langchain4j.openai.chat-model.api-key}") //Injects a variable with the value of the property "langchain4j.openai.chat-model.api-key" from application.properties
     private String openAiApiKey;
 
-    private Boolean firstRun = false; // Flag to control data ingestion
+    private Boolean firstRun = true; // Flag to control data ingestion
 
     public EmbeddingStore<TextSegment> buildPersistentEmbeddingStore() {
         return PgVectorEmbeddingStore.builder()
@@ -78,6 +79,7 @@ public class LangChainExampleRunner implements CommandLineRunner {
                 .chatModel(chatModel)
                 //.contentRetriever(contentRetriever) --> From now on we won't use this because we'll perform the semantic search manually
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(30))
+                .tools(new InsuranceQuoteTool())
                 .build();
 
         IProfileExtractionAgent profileExtractionAgent = AiServices.builder(IProfileExtractionAgent.class)
@@ -97,7 +99,11 @@ public class LangChainExampleRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("LangChain4j Example Runner started...");
-        // 1) Construir los modelos y el store:
+        String jsonDataForProfileExtractionAgent = null;
+        List<String> candidateIds = null;
+        String contextForAgent = "";
+
+        // 1) Build the models and the store:
         final ProductRecommendationResult productRecommendationResult = createAgenteChatRecomendador();
 
         IChatAgentA chatAgentA = productRecommendationResult.getChatAgentA();
@@ -105,13 +111,15 @@ public class LangChainExampleRunner implements CommandLineRunner {
         EmbeddingStore<TextSegment> embeddingStore = productRecommendationResult.getEmbeddingStore();
         IProfileExtractionAgent profileExtractionAgent = productRecommendationResult.getProfileExtractionAgent();
 
-        // 2) Cargar productos e ingresar segmentos:
-        List<Product> products = ProductSamples.buildSampleProducts();
+        // 2) Get insurance products:
+        List<Product> products = ProductRepository.findAllProducts();
         if (firstRun)
+            // Ingest only on first run
             ProductIngestion.ingestAll(products, embeddingStore, embeddingModel);
 
+        // Create ClientProfile to hold extracted data:
         ClientProfile clientProfile = new ClientProfile();
-        String jsonData;
+
 
         System.out.println("Type your question here:");
         Scanner scanner = new Scanner(System.in);
@@ -123,12 +131,13 @@ public class LangChainExampleRunner implements CommandLineRunner {
                 break;
             }
 
-            jsonData = profileExtractionAgent.extractData(line);
-            jsonData = jsonData.replaceAll("```json", "").replaceAll("```", "");
-            clientProfile.applyJson(jsonData);
+            jsonDataForProfileExtractionAgent = profileExtractionAgent.extractData(line);
+            jsonDataForProfileExtractionAgent = jsonDataForProfileExtractionAgent.replaceAll("```json", "").replaceAll("```", "");
+            clientProfile.applyJson(jsonDataForProfileExtractionAgent);
+            log.info("Extracted client profile: {}", clientProfile);
 
             // 3) Cuando llega un mensaje del usuario, extraes perfil (como ya lo haces) y luego:
-            List<String> candidateIds = AudienceSearcher.findCandidateProductIds(
+            candidateIds = AudienceSearcher.findCandidateProductIds(
                     clientProfile,
                     embeddingModel,
                     embeddingStore,
@@ -137,7 +146,8 @@ public class LangChainExampleRunner implements CommandLineRunner {
             );
 
             // 4) Construyes el contexto sólo con productos candidatos:
-            String contextForAgent = AgentContextBuilder.buildContextForAgent(products, candidateIds);
+            contextForAgent = AgentContextBuilder.buildContextForAgent(products, candidateIds);
+
 
             // 5) Llamas a tu agente principal:
             String respuesta = chatAgentA.chat(line, contextForAgent);

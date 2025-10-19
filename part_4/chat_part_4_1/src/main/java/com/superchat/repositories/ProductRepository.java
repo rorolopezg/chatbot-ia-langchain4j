@@ -1,15 +1,15 @@
-package com.superchat.ingestion;
+package com.superchat.repositories;
 
 import com.superchat.model.Product;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ProductSamples {
+public final class ProductRepository {
 
-    private ProductSamples(){}
+    private ProductRepository(){}
 
-    public static List<Product> buildSampleProducts() {
+    public static List<Product> findAllProducts() {
         List<Product> items = new ArrayList<>();
 
         items.add(new Product(
@@ -37,11 +37,11 @@ public final class ProductSamples {
                 - Permanent disability: Covers permanent disability resulting from an accident, offering financial benefits.
                 """,
                 """
-                Adults of any age who are exposed to risks of accidents in their daily activities, such as workers,
+                Adults aged 25-65, of any gender, who are exposed to risks of accidents in their daily activities, such as workers,
                 students, athletes, or people who frequently travel, and who wish to protect themselves and their
                 families from the financial consequences of accidental injuries or death.
                 """,
-                0, 120, "accident"
+                25, 65, "accident"
         ));
 
         items.add(new Product(
@@ -54,7 +54,7 @@ public final class ProductSamples {
                 - Medical consultations: Provides coverage for medical consultations with specialists.
                 """,
                 """
-                Individuals and families of all ages who are concerned about potential medical expenses due to illness
+                Individuals and families of all ages (0-120) who are concerned about potential medical expenses due to illness
                 or accidents, including those with pre-existing health conditions, self-employed professionals, parents
                 seeking coverage for their children, elderly individuals, and anyone who wants to ensure access to
                 quality healthcare and financial protection against unexpected medical costs.
@@ -77,12 +77,12 @@ public final class ProductSamples {
                 - Travel assistance services: Offers 24/7 support for emergencies, including medical evacuation, legal assistance, and travel advice.
                 """,
                 """
-                Young adults aged 20–45, of any gender, who travel for leisure, study, or work and seek reliable
+                Young adults aged 20–35, of any gender, who travel for leisure, study, or work and seek reliable
                 protection against travel-related risks. Ideal for frequent travelers, digital nomads, students
                 studying abroad, or professionals on business trips who value safety, flexibility, and peace of mind
                 while exploring the world.
                 """,
-                20, 45, "travel"
+                20, 35, "travel"
         ));
 
         items.add(new Product(
@@ -95,7 +95,7 @@ public final class ProductSamples {
                 - Medical consultations: Provides coverage for medical consultations with specialists.
                 """,
                 """
-                Oriented to people of all ages, owners of pets such as dogs and cats, who want to provide them with protection against diseases.
+                Oriented to people of all ages (0-120), owners of pets such as dogs and cats, who want to provide them with protection against diseases.
                 """,
                 0, 120, "pet"
         ));

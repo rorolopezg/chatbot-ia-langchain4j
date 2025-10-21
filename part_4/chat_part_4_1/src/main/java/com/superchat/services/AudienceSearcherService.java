@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.superchat.services.ProductFields.*;
+import static com.superchat.services.ProductFieldsUtil.*;
 
 @Slf4j
 @Service
@@ -34,7 +34,7 @@ public final class AudienceSearcherService {
         // 2) Search semantically in the store
         EmbeddingSearchRequest req = EmbeddingSearchRequest.builder()
                 .queryEmbedding(queryForEmbeddings)
-                .maxResults(maxResults * 5) // Get more to allow for post-filtering
+                .maxResults(maxResults * 2) // Get more to allow for post-filtering
                 .minScore(minScore)
                 .build();
 

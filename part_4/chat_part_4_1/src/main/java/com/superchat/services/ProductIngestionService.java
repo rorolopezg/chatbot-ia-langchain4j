@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.superchat.services.ProductFields.*;
+import static com.superchat.services.ProductFieldsUtil.*;
 
 @Service
 @Slf4j
-public final class ProductIngestion {
+public final class ProductIngestionService {
 
-    private ProductIngestion(){}
+    private ProductIngestionService(){}
 
     public void ingestAll(List<Product> products,
                                  EmbeddingStore<TextSegment> store,

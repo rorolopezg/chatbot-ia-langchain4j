@@ -2,7 +2,7 @@ package com.superchat.services;
 
 // Constants related to product fields. Used during the ingestion process, specifically when mapping
 // the product metadata.
-public final class ProductFields {
+public final class ProductFieldsUtil {
     public static final String META_PRODUCT_ID = "productId";
     public static final String META_NAME = "name";
     public static final String META_AGE_MIN = "ageMin";
@@ -12,5 +12,5 @@ public final class ProductFields {
     public static final String SEG_AUDIENCE = "audience";
     public static final String SEG_DETAILS = "details";
 
-    private ProductFields() {}
+    private ProductFieldsUtil() {}
 }

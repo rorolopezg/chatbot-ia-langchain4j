@@ -36,14 +36,6 @@ public final class IABuilderService {
 
     public ProductRecommendationResult createAgenteChatRecomendador() {
         ProductRecommendationResult result = new ProductRecommendationResult();
-        OpenAiChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey(openAiApiKey)
-                .modelName("gpt-4o") // Or "gpt-4-1106-preview", "gpt-3.5-turbo"
-                .temperature(0.1)
-                .timeout(Duration.ofSeconds(60))
-                .logRequests(false)
-                .logResponses(false)
-                .build();
 
         EmbeddingModel embeddingModel = OpenAiEmbeddingModel.builder()
                 .apiKey(openAiApiKey)
@@ -55,16 +47,25 @@ public final class IABuilderService {
 
         EmbeddingStore<TextSegment> embeddingStore = buildPersistentEmbeddingStore();
 
-        IChatAgentA mainChatAgent = AiServices.builder(IChatAgentA.class)
-                .chatModel(chatModel)
-                //.contentRetriever(contentRetriever) --> From now on we won't use this because we'll perform the semantic search manually
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(30))
-                .tools(new InsuranceQuoteTool())
+        OpenAiChatModel chatModel = OpenAiChatModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName("gpt-4o") // Or "gpt-4-1106-preview", "gpt-3.5-turbo"
+                .temperature(0.1)
+                .timeout(Duration.ofSeconds(60))
+                .logRequests(false)
+                .logResponses(false)
                 .build();
 
         IProfileExtractionAgent profileExtractionAgent = AiServices.builder(IProfileExtractionAgent.class)
                 .chatModel(chatModel)
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(3))
+                .build();
+
+        IChatAgentA mainChatAgent = AiServices.builder(IChatAgentA.class)
+                .chatModel(chatModel)
+                //.contentRetriever(contentRetriever) --> From now on we won't use this because we'll perform the semantic search manually
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(30))
+                .tools(new InsuranceQuoteTool())
                 .build();
 
         result.setChatAgentA(mainChatAgent);

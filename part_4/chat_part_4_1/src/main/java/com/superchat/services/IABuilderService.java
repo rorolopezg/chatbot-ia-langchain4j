@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 
 @Service
-public class IABuilderService {
+public final class IABuilderService {
     @Value("${langchain4j.openai.chat-model.api-key}") //Injects a variable with the value of the property "langchain4j.openai.chat-model.api-key" from application.properties
     private String openAiApiKey;
 

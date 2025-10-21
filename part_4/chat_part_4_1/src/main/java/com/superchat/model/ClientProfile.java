@@ -17,33 +17,80 @@ public class ClientProfile {
     private String name;
     private Integer age;
     private String maritalStatus;
-    private String expressionOfInterestInInsurance;
     private Boolean hasChildren;
+    private Boolean hasPets;
+    private Boolean hasHouses;
+    private Boolean hasApartments;
+    private Boolean hasCars;
+    private Boolean likesTraveling;
+    private StringBuilder expressionOfInterestInInsurance = new StringBuilder();
+    private StringBuilder expressionOfInterestInOthersThings = new StringBuilder();
 
     public void applyJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(json);
 
-            String name = getText(root, "name");
-            if (name != null && !name.isEmpty())
-                this.setName(name);
+            String nameFromJson = getText(root, "name");
+            if (nameFromJson != null && !nameFromJson.isEmpty())
+                this.setName(nameFromJson);
 
-            String maritalStatus = getText(root, "maritalStatus");
-            if (maritalStatus != null && !maritalStatus.isEmpty())
-                this.setMaritalStatus(maritalStatus);
+            String maritalStatusFromJson = getText(root, "maritalStatus");
+            if (maritalStatusFromJson != null && !maritalStatusFromJson.isEmpty())
+                this.setMaritalStatus(maritalStatusFromJson);
 
-            Integer age = getInt(root, "age");
-            if (age != null)
-                this.setAge(age);
+            Integer ageFromJson = getInt(root, "age");
+            if (ageFromJson != null)
+                this.setAge(ageFromJson);
 
-            Boolean hasChildren = getBoolean(root, "hasChildren");
-            if (hasChildren != null)
-                this.setHasChildren(hasChildren);
+            Boolean hasChildrenFromJson = getBoolean(root, "hasChildren");
+            if (hasChildrenFromJson != null)
+                this.setHasChildren(hasChildrenFromJson);
 
-            String expressionOfInterestInInsurance = getText(root, "expressionOfInterestInInsurance");
-            if (expressionOfInterestInInsurance != null && !expressionOfInterestInInsurance.isEmpty())
-                this.setExpressionOfInterestInInsurance(expressionOfInterestInInsurance);
+            Boolean hasPetsFromJson = getBoolean(root, "hasPets");
+            if (hasPetsFromJson != null)
+                this.setHasPets(hasPetsFromJson);
+
+            Boolean hasHousesFromJson = getBoolean(root, "hasHouses");
+            if (hasHousesFromJson != null)
+                this.setHasHouses(hasHousesFromJson);
+
+            Boolean hasApartmentsFromJson = getBoolean(root, "hasApartments");
+            if (hasApartmentsFromJson != null)
+                this.setHasApartments(hasApartmentsFromJson);
+
+            Boolean hasCarsFromJson = getBoolean(root, "hasCars");
+            if (hasCarsFromJson != null)
+                this.setHasCars(hasCarsFromJson);
+
+            Boolean likesTravelFromJson = getBoolean(root, "likesTraveling");
+            if (likesTravelFromJson != null)
+                this.setLikesTraveling(likesTravelFromJson);
+
+            expressionOfInterestInInsurance.setLength(0); // Clear previous content
+            String expressionOfInterestInInsuranceFromJson = getText(root, "expressionOfInterestInInsurance");
+            if (expressionOfInterestInInsuranceFromJson != null && !expressionOfInterestInInsuranceFromJson.isEmpty())
+                expressionOfInterestInInsurance.append(expressionOfInterestInInsuranceFromJson).append(", ");
+
+
+            if (hasPetsFromJson != null && hasPetsFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("pet"))
+                expressionOfInterestInInsurance.append("Pet insurance, ");
+
+            if (hasHousesFromJson != null && hasHousesFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("home"))
+                expressionOfInterestInInsurance.append("Home (house) insurance, ");
+
+            if (hasApartmentsFromJson != null && hasApartmentsFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("apartment"))
+                expressionOfInterestInInsurance.append("Home (apartment) insurance, ");
+
+            if (hasCarsFromJson != null && hasCarsFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("car"))
+                expressionOfInterestInInsurance.append("Car insurance, ");
+
+            if (likesTravelFromJson != null && likesTravelFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("travel"))
+                expressionOfInterestInInsurance.append("Travel insurance, ");
+
+            String expressionOfInterestInOthersThingsFromJson = getText(root, "expressionOfInterestInOthersThings");
+            if (expressionOfInterestInOthersThingsFromJson != null && !expressionOfInterestInOthersThingsFromJson.isEmpty())
+                expressionOfInterestInInsurance.append(expressionOfInterestInOthersThingsFromJson).append(", ");
 
         } catch (Exception e) {
             log.error("Error building ClientProfile from JSON", e);
@@ -107,36 +154,60 @@ public class ClientProfile {
                 ? "Unknown if has children"
                 : (this.getHasChildren() ? "With children" : "With No children");
 
-        String insuredInterest = (expressionOfInterestInInsurance == null || expressionOfInterestInInsurance.isBlank())
+        String pets = (this.getHasPets() == null)
+                ? "Unknown if has pets"
+                : (this.getHasPets() ? "With pets" : "With No pets");
+
+        String houses = (this.getHasHouses() == null)
+                ? "Unknown if has houses"
+                : (this.getHasHouses() ? "With houses" : "With No houses");
+
+        String apartments = (this.getHasApartments() == null)
+                ? "Unknown if has apartments"
+                : (this.getHasApartments() ? "With apartments" : "With No apartments");
+
+        String cars = (this.getHasCars() == null)
+                ? "Unknown if has cars"
+                : (this.getHasCars() ? "With cars" : "With No cars");
+
+        String insuredInterest = (expressionOfInterestInInsurance == null || expressionOfInterestInInsurance.isEmpty())
                 ? "interests: unknown"
-                : "interested in " + expressionOfInterestInInsurance;
+                : "interested in " + expressionOfInterestInInsurance.toString();
+
+        String othersInterest = (expressionOfInterestInOthersThings == null || expressionOfInterestInOthersThings.isEmpty())
+                ? "other interests: unknown"
+                : "others interests are " + expressionOfInterestInOthersThings.toString();
 
         return """
-               Find target audience that matches: age %s (%s), %s, %s, %s.
+               Find target audience that matches: age %s (%s), %s, %s, %s, %s, %s, %s. %s, %s.
                Return insurance products whose TARGET AUDIENCE best fits this profile.
                """.formatted(
                 (age == null || age == 0 ? "unknown" : String.valueOf(age)),
                 ageBand,
                 marital,
                 children,
-                insuredInterest
+                hasPets != null ? pets: "",
+                hasHouses != null ? houses: "",
+                hasApartments != null ? apartments : "",
+                hasCars != null ? cars : "",
+                expressionOfInterestInInsurance == null || expressionOfInterestInInsurance.isEmpty() ? "" : insuredInterest,
+                expressionOfInterestInOthersThings == null || expressionOfInterestInOthersThings.isEmpty() ?  "" : othersInterest
         );
-        /*
-        return """
-           I'm %s years old (%s), I'm %s, %s. Interest: %s.
-           """.formatted(ageStr, ageBand, marital, children, insuredInterest);
-
-         */
     }
 
     @Override
     public String toString() {
-        return "ClientProfile{" +
-                "name='" + name + '\'' +
+        return "ClientProfile {" +
+                "name='" + name + "'" +
                 ", age=" + age +
-                ", maritalStatus='" + maritalStatus + '\'' +
-                ", expressionOfInterestInInsurance='" + expressionOfInterestInInsurance + '\'' +
+                ", maritalStatus='" + maritalStatus + "'" +
                 ", hasChildren=" + hasChildren +
+                ", hasPets=" + hasPets +
+                ", hasHouses=" + hasHouses +
+                ", hasApartment=" + hasApartments +
+                ", hasCars=" + hasCars +
+                ", expressionOfInterestInInsurance='" + expressionOfInterestInInsurance + "'" +
+                ", expressionOfInterestInOthersThings='" + expressionOfInterestInOthersThings + "'" +
                 '}';
     }
 }

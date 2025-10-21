@@ -1,4 +1,4 @@
-package com.superchat.ingestion;
+package com.superchat.services;
 
 import com.superchat.model.Product;
 import dev.langchain4j.data.document.Metadata;
@@ -7,31 +7,33 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.superchat.model.ProductFields.*;
+import static com.superchat.services.ProductFields.*;
 
+@Service
 @Slf4j
 public final class ProductIngestion {
 
     private ProductIngestion(){}
 
-    public static void ingestAll(List<Product> products,
+    public void ingestAll(List<Product> products,
                                  EmbeddingStore<TextSegment> store,
                                  EmbeddingModel embeddingModel) {
         for (Product p : products) {
             log.info("Ingesting product: {} - {}", p.id(), p.name());
-            ProductIngestion.ingestProduct(p, store, embeddingModel);
+            ingestProduct(p, store, embeddingModel);
         }
         log.info("Ingestion completed for {} products.", products.size());
     }
 
-    public static void ingestProduct(Product p,
+    public void ingestProduct(Product p,
                                      EmbeddingStore<TextSegment> store,
                                      EmbeddingModel embeddingModel) {
 
-        // ===== Segmento AUDIENCE =====
+        // ===== AUDIENCE Segment =====
         Metadata audMd = new Metadata();
         audMd.put(META_PRODUCT_ID, p.id());
         audMd.put(META_NAME, p.name());
@@ -46,7 +48,7 @@ public final class ProductIngestion {
         Embedding audienceEmb = embeddingModel.embed(audienceSeg).content();
         store.add(audienceEmb, audienceSeg);
 
-        // ===== Segmento DETAILS =====
+        // ===== DETAILS segment =====
         Metadata detMd = new Metadata();
         detMd.put(META_PRODUCT_ID, p.id());
         detMd.put(META_NAME, p.name());

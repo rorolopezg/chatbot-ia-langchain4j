@@ -19,6 +19,7 @@ public final class AgentContextBuilder {
             Product p = byId.get(id);
             if (p == null) continue;
 
+            sb.append("CONTEXT_PRODUCTS_COUNT: ").append(candidateIds.size()).append("\n---\n");
             sb.append("""
                       Product ID: %s
                       Product Name: %s

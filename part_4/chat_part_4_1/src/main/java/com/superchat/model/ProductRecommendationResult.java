@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// Clase utilitaria que agrupa los objetos de langchain4j necesarios para la recomendación de productos:
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

@@ -1,4 +1,4 @@
-package com.superchat.semanticsearches;
+package com.superchat.services;
 
 import com.superchat.model.ClientProfile;
 import dev.langchain4j.data.embedding.Embedding;
@@ -9,17 +9,19 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.superchat.model.ProductFields.*;
+import static com.superchat.services.ProductFields.*;
 
 @Slf4j
-public final class AudienceSearcher {
-    private AudienceSearcher(){}
+@Service
+public final class AudienceSearcherService {
+    private AudienceSearcherService(){}
 
-    public static List<String> findCandidateProductIds(ClientProfile profile,
+    public List<String> findCandidateProductIds(ClientProfile profile,
                                                        EmbeddingModel embeddingModel,
                                                        EmbeddingStore<TextSegment> store,
                                                        int maxResults,
@@ -32,7 +34,7 @@ public final class AudienceSearcher {
         // 2) Search semantically in the store
         EmbeddingSearchRequest req = EmbeddingSearchRequest.builder()
                 .queryEmbedding(queryForEmbeddings)
-                .maxResults(maxResults)
+                .maxResults(maxResults * 5) // Get more to allow for post-filtering
                 .minScore(minScore)
                 .build();
 
@@ -48,7 +50,7 @@ public final class AudienceSearcher {
                 .filter(m -> {
                     Integer min = m.embedded().metadata().getInteger(META_AGE_MIN);
                     Integer max = m.embedded().metadata().getInteger(META_AGE_MAX);
-                    return (age >= min && age <= max);
+                    return age >= min && age <= max;
                 })
                 .toList();
         log.info("After post-filtering, {} matches remain for audience query.", audienceMatches.size());
@@ -64,12 +66,19 @@ public final class AudienceSearcher {
                         m -> m,
                         (m1, m2) -> m1.score() >= m2.score() ? m1 : m2
                 ));
+        log.info("After consolidating by product ID, {} unique products remain.", bestPerProduct.size());
 
         // 5) Sort by score desc and cut to maxResults:
-        return bestPerProduct.values().stream()
+        List<EmbeddingMatch<TextSegment>> top = bestPerProduct.values().stream()
                 .sorted(Comparator.comparingDouble(EmbeddingMatch<TextSegment>::score).reversed())
-                .limit(3) // Get top N products
-                .map(m -> String.valueOf(m.embedded().metadata().getString(META_PRODUCT_ID)))
+                .limit(maxResults)
+                .toList();
+
+        top.forEach(m -> log.debug("Top candidate id={} score={}",
+                m.embedded().metadata().getString(META_PRODUCT_ID), m.score()));
+
+        return top.stream()
+                .map(m -> m.embedded().metadata().getString(META_PRODUCT_ID))
                 .toList();
     }
 }

@@ -1,15 +1,19 @@
-package com.superchat.repositories;
+package com.superchat.services;
 
 import com.superchat.model.Product;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ProductRepository {
+@Service
+@Slf4j
+public final class ProductService {
 
-    private ProductRepository(){}
+    private ProductService(){}
 
-    public static List<Product> findAllProducts() {
+    public List<Product> findAllProducts() {
         List<Product> items = new ArrayList<>();
 
         items.add(new Product(

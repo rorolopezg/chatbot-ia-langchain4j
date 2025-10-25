@@ -26,6 +26,10 @@ public class ClientProfile {
     private StringBuilder expressionOfInterestInInsurance = new StringBuilder();
     private StringBuilder expressionOfInterestInOthersThings = new StringBuilder();
 
+    private String error;
+    private String message;
+    private String raw;
+
     public void applyJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -67,10 +71,13 @@ public class ClientProfile {
             if (likesTravelFromJson != null)
                 this.setLikesTraveling(likesTravelFromJson);
 
-            expressionOfInterestInInsurance.setLength(0); // Clear previous content
+            //expressionOfInterestInInsurance.setLength(0); // Clear previous content
             String expressionOfInterestInInsuranceFromJson = getText(root, "expressionOfInterestInInsurance");
-            if (expressionOfInterestInInsuranceFromJson != null && !expressionOfInterestInInsuranceFromJson.isEmpty())
-                expressionOfInterestInInsurance.append(expressionOfInterestInInsuranceFromJson).append(", ");
+            if (expressionOfInterestInInsuranceFromJson != null && !expressionOfInterestInInsuranceFromJson.isEmpty()) {
+                if (!expressionOfInterestInInsurance.isEmpty())
+                    expressionOfInterestInInsurance.append(", ");
+                expressionOfInterestInInsurance.append(expressionOfInterestInInsuranceFromJson);
+            }
 
 
             if (hasPetsFromJson != null && hasPetsFromJson && !expressionOfInterestInInsurance.toString().toLowerCase().contains("pet"))
@@ -91,6 +98,18 @@ public class ClientProfile {
             String expressionOfInterestInOthersThingsFromJson = getText(root, "expressionOfInterestInOthersThings");
             if (expressionOfInterestInOthersThingsFromJson != null && !expressionOfInterestInOthersThingsFromJson.isEmpty())
                 expressionOfInterestInInsurance.append(expressionOfInterestInOthersThingsFromJson).append(", ");
+
+            String errorFromJson = getText(root, "error");
+            if (errorFromJson != null && !errorFromJson.isEmpty())
+                this.setError(errorFromJson);
+
+            String messageFromJson = getText(root, "message");
+            if (messageFromJson != null && !messageFromJson.isEmpty())
+                this.setMessage(messageFromJson);
+
+            String rawFromJson = getText(root, "raw");
+            if (rawFromJson != null && !rawFromJson.isEmpty())
+                this.setRaw(rawFromJson);
 
         } catch (Exception e) {
             log.error("Error building ClientProfile from JSON", e);
@@ -116,15 +135,6 @@ public class ClientProfile {
             return root.get(field).asBoolean();
         }
         return null;
-    }
-
-    public String toJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(this);
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting ClientProfile to JSON", e);
-        }
     }
 
     private String buildAgeBand() {
@@ -208,6 +218,9 @@ public class ClientProfile {
                 ", hasCars=" + hasCars +
                 ", expressionOfInterestInInsurance='" + expressionOfInterestInInsurance + "'" +
                 ", expressionOfInterestInOthersThings='" + expressionOfInterestInOthersThings + "'" +
+                ", error='" + error + "'" +
+                ", message='" + message + "'" +
+                ", raw='" + raw + "'" +
                 '}';
     }
 }

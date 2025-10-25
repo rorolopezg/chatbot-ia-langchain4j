@@ -36,7 +36,7 @@ public final class ProductIngestionService {
         // ===== AUDIENCE Segment =====
         Metadata audMd = new Metadata();
         audMd.put(META_PRODUCT_ID, p.id());
-        audMd.put(META_NAME, p.name());
+        audMd.put(META_PRODUCT_NAME, p.name());
         audMd.put(META_AGE_MIN, p.ageMin());
         audMd.put(META_AGE_MAX, p.ageMax());
         audMd.put(META_CATEGORY, p.category());
@@ -51,7 +51,7 @@ public final class ProductIngestionService {
         // ===== DETAILS segment =====
         Metadata detMd = new Metadata();
         detMd.put(META_PRODUCT_ID, p.id());
-        detMd.put(META_NAME, p.name());
+        detMd.put(META_PRODUCT_NAME, p.name());
         detMd.put(META_AGE_MIN, p.ageMin());
         detMd.put(META_AGE_MAX, p.ageMax());
         detMd.put(META_CATEGORY, p.category());

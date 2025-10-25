@@ -1,7 +1,7 @@
 package com.superchat;
 
 import com.superchat.services.ProductIngestionService;
-import com.superchat.repositories.ProductRepository;
+import com.superchat.services.ProductService;
 import com.superchat.interfaces.IChatAgentA;
 import com.superchat.interfaces.IProfileExtractionAgent;
 import com.superchat.model.ClientProfile;
@@ -27,14 +27,17 @@ public class LangChainExampleRunner implements CommandLineRunner {
     private final IABuilderService iaBuilderService;
     private final AudienceSearcherService audienceSearcher;
     private final ProductIngestionService productIngestionService;
+    private final ProductService productService;
 
     // Step 0 - Constructor-based dependency injection
     public LangChainExampleRunner(IABuilderService iaBuilderService,
                                   AudienceSearcherService audienceSearcher,
-                                  ProductIngestionService productIngestionService) {
+                                  ProductIngestionService productIngestionService,
+                                  ProductService productService) {
         this.iaBuilderService = iaBuilderService;
         this.audienceSearcher = audienceSearcher;
         this.productIngestionService = productIngestionService;
+        this.productService = productService;
     }
 
     @Override
@@ -47,15 +50,14 @@ public class LangChainExampleRunner implements CommandLineRunner {
 
         // Step 1 - Setup: Build the models and the store:
         final ProductRecommendationResult productRecommendationResult = iaBuilderService.createAgenteChatRecomendador();
-
-        IProfileExtractionAgent profileExtractionAgent = productRecommendationResult.getProfileExtractionAgent();
-        IChatAgentA chatAgentA = productRecommendationResult.getChatAgentA();
-        EmbeddingModel embeddingModel = productRecommendationResult.getEmbeddingModel();
-        EmbeddingStore<TextSegment> embeddingStore = productRecommendationResult.getEmbeddingStore();
+        final IProfileExtractionAgent profileExtractionAgent = productRecommendationResult.getProfileExtractionAgent();
+        final IChatAgentA chatAgentA = productRecommendationResult.getChatAgentA();
+        final EmbeddingModel embeddingModel = productRecommendationResult.getEmbeddingModel();
+        final EmbeddingStore<TextSegment> embeddingStore = productRecommendationResult.getEmbeddingStore();
 
         // Step 2 - Manage Products
         // 2.1. Get the insurance products:
-        List<Product> products = ProductRepository.findAllProducts();
+        List<Product> products = productService.findAllProducts();
 
         // 2.2. If first run, ingest products into the embedding store:
         if (firstRun)
@@ -80,6 +82,7 @@ public class LangChainExampleRunner implements CommandLineRunner {
             // Step 4 - Get client profile. When a message arrives from the user, try yo extract profile info using
             //          the profile extraction agent:
             jsonDataForProfileExtractionAgent = profileExtractionAgent.extractData(line);
+            jsonDataForProfileExtractionAgent = jsonDataForProfileExtractionAgent.replaceAll("```json", "").replaceAll("```", "");
             clientProfile.applyJson(jsonDataForProfileExtractionAgent);
 
             log.info("Extracted client profile: {}", clientProfile.toString());
@@ -92,7 +95,7 @@ public class LangChainExampleRunner implements CommandLineRunner {
                     embeddingModel,
                     embeddingStore,
                     7, // maxResults
-                    0.75 // minScore
+                    0.78 // minScore
             );
 
             // Step 6 - Build context for main agent.
